@@ -8,11 +8,11 @@ const request = util.promisify(require("request"));
 
 const DEPLOYER_PRIVATE_KEY = network.config.accounts[0];
 
-function hexToBytes(hex) {
-  for (var bytes = [], c = 0; c < hex.length; c += 2)
-    bytes.push(parseInt(hex.substr(c, 2), 16));
-  return new Uint8Array(bytes);
-}
+// function hexToBytes(hex) {
+//   for (var bytes = [], c = 0; c < hex.length; c += 2)
+//     bytes.push(parseInt(hex.substr(c, 2), 16));
+//   return new Uint8Array(bytes);
+// }
 
 async function callRpc(method, params) {
   var options = {
@@ -47,7 +47,21 @@ module.exports = async ({ deployments }) => {
   console.log("Wallet f4Address: ", f4Address)
 
 
-  await deploy("SimpleCoin", {
+  // await deploy("ERC20Token", {
+  //   from: deployer.address,
+  //   args: [],
+  //   // since it's difficult to estimate the gas before f4 address is launched, it's safer to manually set
+  //   // a large gasLimit. This should be addressed in the following releases.
+  //   gasLimit: 1000000000, // BlockGasLimit / 10
+  //   // since Ethereum's legacy transaction format is not supported on FVM, we need to specify
+  //   // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
+  //   maxPriorityFeePerGas: 401179, //priorityFee * 1.5,
+  //   nonce: nonce,
+  //   log: true,
+  // });
+
+
+  await deploy("StakingCon", {
     from: deployer.address,
     args: [],
     // since it's difficult to estimate the gas before f4 address is launched, it's safer to manually set
@@ -55,7 +69,7 @@ module.exports = async ({ deployments }) => {
     gasLimit: 1000000000, // BlockGasLimit / 10
     // since Ethereum's legacy transaction format is not supported on FVM, we need to specify
     // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
-    maxPriorityFeePerGas: priorityFee,
+    maxPriorityFeePerGas: 401179, //priorityFee * 1.5,
     nonce: nonce,
     log: true,
   });

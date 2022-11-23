@@ -73,3 +73,10 @@ yarn hardhat get-balance --contract 'THE DEPLOYED CONTRACT ADDRESS HERE' --accou
 ```
 
 The console should read that your account has 10000 SimpleCoin!
+
+
+## note tmp
+```shell
+ yarn run hardhat size-contracts
+ https://www.npmjs.com/package/hardhat-contract-sizer
+```
