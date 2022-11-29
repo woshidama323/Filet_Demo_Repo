@@ -1,9 +1,8 @@
 const util = require("util");
 const request = util.promisify(require("request"));
 
-task("erctest", "Start erc fils on the contract")
+task("getminerlist", "Start erc fils on the contract")
   .addParam("contract", "The address the staking contract")
-  .addParam("account", "The address of the account you want the balance for")
   .setAction(async (taskArgs) => {
     
     async function callRpc(method, params) {
@@ -26,30 +25,19 @@ task("erctest", "Start erc fils on the contract")
     }
 
     const contractAddr = taskArgs.contract
-    const account = taskArgs.account
     const networkId = network.name
-    console.log("Reading ERC20Token owned by", account, " on network ", networkId)
-    const ERC20Token = await ethers.getContractFactory("ERC20Token")
+    const stakingcon = await ethers.getContractFactory("StakingCon")
 
     //Get signer information
     const accounts = await ethers.getSigners()
     const signer = accounts[0]
-    const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
+    // const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
     console.log("signer 0 is :",accounts[0].address)
-    console.log("signer 1 is :",accounts[1].address)
 
-    const ERC20TokenContract = new ethers.Contract(contractAddr, ERC20Token.interface, signer)
+    const stakingContract = new ethers.Contract(contractAddr, stakingcon.interface, signer)
     
-    //start staking contract 
-
-    let transferresult = await ERC20TokenContract.transfer(accounts[1].address,"1000", {
-        gasLimit: 1000000000,
-        maxPriorityFeePerGas: priorityFee
-    })
-    console.log("transferresult result is: ", transferresult)
-    
-    let result = await ERC20TokenContract.balanceOf(accounts[1].address)
-    console.log("balanceOf result is: ", result.toString())
+    let result = await stakingContract.minePoolMap(1)
+    console.log("userData result is: ", result.toString())
   })
 
 module.exports = {}

@@ -79,4 +79,14 @@ The console should read that your account has 10000 SimpleCoin!
 ```shell
  yarn run hardhat size-contracts
  https://www.npmjs.com/package/hardhat-contract-sizer
+
+
+
+ ## 常用命令
+ yarn hardhat staking --contract 0x789f1C872DEbD2DC233D4AEd395ae0BA304D15a2
+
+
+ ## 浏览器
+ https://explorer.glif.io/address/0xE80e1c2E1d5D4AE1638ca4f83f30da8EbB497Ba4/?network=wallabynet
+ 
 ```

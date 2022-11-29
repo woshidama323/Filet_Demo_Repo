@@ -1,9 +1,8 @@
 const util = require("util");
 const request = util.promisify(require("request"));
-
-task("StakingCoin", "Start staking fils on the contract")
+const mockminer = ''
+task("minerregister", "miner register")
   .addParam("contract", "The address the staking contract")
-  .addParam("account", "The address of the account you want the balance for")
   .setAction(async (taskArgs) => {
     
     async function callRpc(method, params) {
@@ -26,34 +25,24 @@ task("StakingCoin", "Start staking fils on the contract")
     }
 
     const contractAddr = taskArgs.contract
-    const account = taskArgs.account
     const networkId = network.name
-    console.log("Reading StakingCon owned by", account, " on network ", networkId)
-    const StakingCon = await ethers.getContractFactory("StakingCon")
+    const stakingcon = await ethers.getContractFactory("StakingCon")
 
     //Get signer information
     const accounts = await ethers.getSigners()
     const signer = accounts[0]
+    // const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
+    console.log("signer 0 is :",accounts[0].address)
+
     const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
-    console.log("signer0 is :",accounts[0].address)
-    console.log("signer1 is :",accounts[1].address)
 
+    const stakingContract = new ethers.Contract(contractAddr, stakingcon.interface, signer)
 
-    const stakingContract = new ethers.Contract(contractAddr, StakingCon.interface, signer)
-    
-    //start staking contract 
-
-    let swithresult = await stakingContract.switchOnContract(true, {
+    let result = await stakingContract.minerregister('0x6a79B2961D30630c35F85A574a229F17144AC816',1, {
         gasLimit: 1000000000,
         maxPriorityFeePerGas: priorityFee
     })
-    console.log("switchOnContract result is: ", swithresult)
-    
-    let result = await stakingContract.stake('234000000',1, {
-        gasLimit: 1000000000,
-        maxPriorityFeePerGas: priorityFee
-    })
-    console.log("staking result is: ", result)
+    console.log("minerregister result is: ", result)
   })
 
 module.exports = {}

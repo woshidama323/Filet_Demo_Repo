@@ -9,7 +9,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY
 const PRIVATE_KEY1 = process.env.PRIVATE_KEY1
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.17",
+  solidity: "0.8.14",
   defaultNetwork: "wallaby",
   networks: {
     wallaby: {
