@@ -38,7 +38,7 @@ task("minerregister", "miner register")
 
     const stakingContract = new ethers.Contract(contractAddr, stakingcon.interface, signer)
 
-    let result = await stakingContract.minerregister('0x6a79B2961D30630c35F85A574a229F17144AC816',1, {
+    let result = await stakingContract.minerregister('0x43dB38412F07fD5403609590955a520Ee3279d69',1, {
         gasLimit: 1000000000,
         maxPriorityFeePerGas: priorityFee
     })

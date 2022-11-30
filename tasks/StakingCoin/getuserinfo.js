@@ -36,7 +36,7 @@ task("getuserinfo", "Start erc fils on the contract")
 
     const stakingContract = new ethers.Contract(contractAddr, stakingcon.interface, signer)
     
-    let result = await stakingContract.userData(accounts[0].address,0)
+    let result = await stakingContract.userData(accounts[0].address,1)
     console.log("userData result is: ", result.toString())
   })
 

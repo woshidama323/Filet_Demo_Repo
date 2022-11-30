@@ -18,16 +18,6 @@ contract StakingCon is StakingErrorReporter{
     //minerpool minerApiAddress
 
     using SafeMath for uint256;
-
-    //lendhub address
-    address private _lendhubAddress;
-
-    //一天的秒数
-    uint private constant secondsForOneDay = 86400;//86400;
-
-    //时区调整
-    uint private constant timeZoneDiff = 28800;
-
     //admin control
     //contract owner address
     address private _owner;
@@ -49,12 +39,6 @@ contract StakingCon is StakingErrorReporter{
        uint sectorType;
        uint    scores;
     }   
-
-    // struct minePoolWrapper{
-    //     minePool mPool;
-    //     bool    isEntity;
-    // }
-
     //minepool map
     mapping(uint => minePool) public minePoolMap ;
 
@@ -65,16 +49,16 @@ contract StakingCon is StakingErrorReporter{
     /** 
     * struct for hold the ratio info
     */
-    struct ratioStruct {
-        uint256 ostakingPrice;     
-        uint  oserviceFeePercent;  
-        uint256 oActiveInterest;
+    // struct ratioStruct {
+    //     uint256 ostakingPrice;     
+    //     uint  oserviceFeePercent;  
+    //     uint256 oActiveInterest;
 
-        uint256 oFrozenInterest;
-        uint256 oHasReceiveInterest;
-        uint256 oNeedToPayGasFee;   
-        uint256 admineUpdateTime;
-    }
+    //     uint256 oFrozenInterest;
+    //     uint256 oHasReceiveInterest;
+    //     uint256 oNeedToPayGasFee;   
+    //     uint256 admineUpdateTime;
+    // }
 
     /**
      * @dev user order for mine
@@ -216,8 +200,8 @@ contract StakingCon is StakingErrorReporter{
     //stake for user
 
     function stake(uint256 amount,uint poolID) external payable returns(bool){
-      
 
+        require(msg.value >= 100000, "should staking larger than 100000");
         userData[msg.sender].push(
             userOrder({
                 user:               msg.sender,
@@ -232,37 +216,36 @@ contract StakingCon is StakingErrorReporter{
         // payable(msg.sender).transfer(100000);
         // transferFrom
 
-
         return true;
     }
 
     function redeem(uint orderID, bool withdrawType) external returns(bool){
-
-        
         return true;
     }
 
     function getProfit(uint plID,uint orderID) external returns ( bool ){
-    
 
+        // some algorithm for profit calculating
+        //1. 获取当前fil余额 （主要来自miner的收益）
+        //2. 获取用户占比
+        //3. 显示可以提取的收益
+        uint256 profitestimate = address(this).balance * 1 / 10 ; //  
+        // userData[msg.sender]. 
+        // minePoolMap[userData[msg.sender].poolID].
+        payable(msg.sender).transfer(profitestimate);
         return true;
 
     }//end function
 
-
     //===================================miner operate ==================================================
-
-    //**
-    /* 1. 基本信息，2. 设置benefit的地址为该合约地址，3. 设置owner地址为合约地址。 4. 
-    // */
     function minerregister(address mineraddress, uint poolid) external returns(bool){
         //need use miner owner to operate
         MinerAPI minerApiInstance = MinerAPI(mineraddress);
 
         // string memory addr = "t01113";
 
-        // need to set current address as owner
-        // minerApiInstance.mock_set_owner(this(address));
+        // // need to set current address as owner
+        // minerApiInstance.mock_set_owner(addr);
 
         
         //set actor as his beneficiary

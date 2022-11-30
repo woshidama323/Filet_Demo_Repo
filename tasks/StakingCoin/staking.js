@@ -42,7 +42,7 @@ task("staking", "Start staking fils on the contract")
     let result = await stakingContract.stake('234000000',1, {
         gasLimit: 1000000000,
         maxPriorityFeePerGas: priorityFee,
-        value: 30000
+        value: "1200000000000000000"
     })
     console.log("staking result is: ", result)
   })

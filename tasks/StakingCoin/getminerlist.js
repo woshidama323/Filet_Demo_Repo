@@ -37,7 +37,7 @@ task("getminerlist", "Start erc fils on the contract")
     const stakingContract = new ethers.Contract(contractAddr, stakingcon.interface, signer)
     
     let result = await stakingContract.minePoolMap(1)
-    console.log("userData result is: ", result.toString())
+    console.log("minerlist result is: ", result.toString())
   })
 
 module.exports = {}
