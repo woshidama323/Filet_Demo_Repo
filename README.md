@@ -5,8 +5,11 @@ Filet is a Filecoin mining power tokenization protocol that deployed on BSC , HE
 Filet is backed by one of the largest storage providers in North America. The project is open source and audited by Certik. Currently over 210K FIL staked in Filet to join Filecoin mining. 
 
 Webiste: www.filet.finance
+
 Telegram: https://t.me/filet_finance
+
 Twitter: https://twitter.com/Filet_finance
+
 Email: contact@filet.finance
 
 
@@ -15,5 +18,6 @@ Email: contact@filet.finance
 ## Status
 
 Now we are working on how to deploy and improve the feature on wallaby testnet
+
 Will update the progress continually
 
