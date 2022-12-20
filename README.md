@@ -24,3 +24,8 @@ Will update the progress continually
 Demo records link here:
 
 https://docs.google.com/presentation/d/1H2a28a7f5aQR-nFSDtVeWesrbPSd-9Qq/edit?usp=sharing&ouid=102496921167907368420&rtpof=true&sd=true
+
+
+## Goals
+
+We want let smart contract act as miner actor and keep users' asset safe
