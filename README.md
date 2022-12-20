@@ -21,3 +21,6 @@ Now we are working on how to deploy and improve the feature on wallaby testnet
 
 Will update the progress continually
 
+Demo records link here:
+
+https://docs.google.com/presentation/d/1H2a28a7f5aQR-nFSDtVeWesrbPSd-9Qq/edit?usp=sharing&ouid=102496921167907368420&rtpof=true&sd=true
