@@ -29,3 +29,24 @@ https://docs.google.com/presentation/d/1H2a28a7f5aQR-nFSDtVeWesrbPSd-9Qq/edit?us
 ## Goals
 
 We want let smart contract act as miner actor and keep users' asset safe
+
+## How to use it
+
+### set env for specifying address private 
+```shell
+### export FILECOIN_Private= 
+source .env
+```
+
+### deploy contract to specific netowrk 
+```shell
+
+###filecoinmaine /  calibration /  hyperspace
+npx hardhat deploy --tags StakingCon --network hyperspace
+
+```
+
+### test with command below
+```shell
+npx hardhat test tests --network hyperspace
+```

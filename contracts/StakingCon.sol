@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {MinerAPI} from "./MinerAPI.sol";
-import {CommonTypes} from "./types/CommonTypes.sol";
-import {MinerTypes} from "./types/MinerTypes.sol";
+import "@zondax/filecoin-solidity/contracts/v0.8/SendAPI.sol";
+import {MinerAPI} from "@zondax/filecoin-solidity/contracts/v0.8/MinerAPI.sol";
+import {MinerTypes} from "@zondax/filecoin-solidity/contracts/v0.8/types/MinerTypes.sol";
+import {BigIntCBOR} from "@zondax/filecoin-solidity/contracts/v0.8/cbor/BigIntCbor.sol";
 
 // import {specific_authenticate_message_params_parse, specific_deal_proposal_cbor_parse} from "./CBORParse.sol";
 
@@ -15,7 +16,9 @@ import "./ErrorReporter.sol";
 
 contract StakingCon is StakingErrorReporter{
 
-    //minerpool minerApiAddress
+    //Global Constant
+    address _MinerActor;
+    uint256 LimitAmount = 1e16 ;
 
     using SafeMath for uint256;
     //admin control
@@ -46,19 +49,12 @@ contract StakingCon is StakingErrorReporter{
 
     address[] public minerPool;
     
-    /** 
-    * struct for hold the ratio info
-    */
-    // struct ratioStruct {
-    //     uint256 ostakingPrice;     
-    //     uint  oserviceFeePercent;  
-    //     uint256 oActiveInterest;
 
-    //     uint256 oFrozenInterest;
-    //     uint256 oHasReceiveInterest;
-    //     uint256 oNeedToPayGasFee;   
-    //     uint256 admineUpdateTime;
-    // }
+    struct MinerPool{
+        address miner;
+        uint256 Power; 
+        uint256 initBalace;
+    }
 
     /**
      * @dev user order for mine
@@ -118,8 +114,9 @@ contract StakingCon is StakingErrorReporter{
     event EventWithDraw(address user,uint poolID,uint orderID,uint256 profitAmount);
 
     //parameters : HFIL token, 
-    constructor() {
-        _owner = msg.sender;
+    constructor(address minerid) {
+        _owner = msg.sender;   
+        _MinerActor =  minerid;
     }
 
     //used for add admin control 
@@ -213,9 +210,6 @@ contract StakingCon is StakingErrorReporter{
                 targetminer :       address(this)
             })
         );
-        // payable(msg.sender).transfer(100000);
-        // transferFrom
-
         return true;
     }
 
@@ -226,9 +220,6 @@ contract StakingCon is StakingErrorReporter{
     function getProfit(uint plID,uint orderID) external returns ( bool ){
 
         // some algorithm for profit calculating
-        //1. 获取当前fil余额 （主要来自miner的收益）
-        //2. 获取用户占比
-        //3. 显示可以提取的收益
         uint256 profitestimate = address(this).balance * 1 / 10 ; //  
         // userData[msg.sender]. 
         // minePoolMap[userData[msg.sender].poolID].
@@ -238,28 +229,75 @@ contract StakingCon is StakingErrorReporter{
     }//end function
 
     //===================================miner operate ==================================================
-    function minerregister(address mineraddress, uint poolid) external returns(bool){
-        //need use miner owner to operate
-        MinerAPI minerApiInstance = MinerAPI(mineraddress);
+    function MinerRegister(MinerPool memory minerInfo) public returns (bool){
+        //1.create a smart contract from current 
+        //2.change owner address Q: SP will concern the safe of contract ?
 
-        // string memory addr = "t01113";
+        MinerAPI.changeOwnerAddress(toBytes(minerInfo.miner),abi.encodePacked(address(this)));
 
-        // // need to set current address as owner
-        // minerApiInstance.mock_set_owner(addr);
-
-        
-        //set actor as his beneficiary
         MinerTypes.ChangeBeneficiaryParams memory params;
-        params.new_beneficiary = "t03311";
-        minerApiInstance.change_beneficiary(params);
+        params.new_beneficiary = abi.encodePacked(address(this));
+        params.new_quota.val = abi.encodePacked(address(this).balance);
+        // params.new_expiration = uint64(end - block.timestamp);
+        MinerAPI.changeBeneficiary(toBytes(minerInfo.miner), params);
 
-        minePoolMap[poolid] = minePool({
-            minerID: mineraddress,
-            powerRate:1000 * 1 ,
-            sectorType: 32  ,
-            scores:90
-        });
+        MinerTypes.GetOwnerReturn memory getOwnerReturnValue = MinerAPI.getOwner(toBytes(minerInfo.miner));
+        address checkOwner = abi.decode(
+            getOwnerReturnValue.owner, 
+            (address)
+        );
+
+        require(checkOwner != address(this),"miner owner is not correct");
+
+        MinerTypes.GetBeneficiaryReturn memory getBeneficiaryReturnValue = MinerAPI.getBeneficiary(toBytes(minerInfo.miner));
+        address checkBeneficiary = abi.decode(getBeneficiaryReturnValue.active.beneficiary,(address));
+        require(checkBeneficiary != address(this),"beneficiary is not correct");
 
         return true;
+    }
+
+
+    //stake function 
+    //1. user transfer FIL to current staking contract
+    //2. contract transfer FIL to Miner Actor
+    //3. Miner actor need to change onwer address with staking contract 
+    //4. owner address could be changed by DAO  
+    function stake(uint poolid,address target) public payable returns (bool){
+        // SendAPI.send(toBytes(target), amount);
+        require(LimitAmount > msg.value, "not meet min condition");
+
+        userData[msg.sender].push(userOrder(
+            {   user:msg.sender,
+                amount:msg.value,
+                poolID:1,
+                status:true,
+                cfltamount:0,
+                createTime:0,
+                targetminer: target
+            })
+        );
+
+        return true;
+    }
+
+    //as there is no method for transferring user's FIL to miner Proxy directly, Here, we need to change this step with two seperate operating
+    function transferFILToMinerProxy(uint256 amount) public {
+        // address(this).transfer();
+        require(address(this).balance >= amount,"no enough fil could be transfer to miner proxy");
+        SendAPI.send(toBytes(_MinerActor), amount);
+    }
+
+    //@dev Convert address to bytes //from https://github.com/kazumal/Filecoin-Lending-Pool
+    function toBytes(address a) public pure returns (bytes memory) { 
+        return abi.encodePacked(a);
+    }
+
+    //@dev Convert Bytes to address //from https://github.com/kazumal/Filecoin-Lending-Pool
+    function bytesToAddress(  
+        bytes memory _bys
+    ) private pure returns (address addr) {
+        assembly {
+            addr := mload(add(_bys, 20))
+        }
     }
 }

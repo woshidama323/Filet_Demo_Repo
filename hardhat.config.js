@@ -1,3 +1,4 @@
+const networks = require('./hardhat.networks')
 require("@nomicfoundation/hardhat-toolbox");
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
@@ -7,16 +8,29 @@ require("dotenv").config()
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY
 const PRIVATE_KEY1 = process.env.PRIVATE_KEY1
+
+// address 
+OwnerTestAccount = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" // test address Cautions: No real fil for this account
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.14",
-  defaultNetwork: "wallaby",
-  networks: {
-    wallaby: {
-      url: "https://wallaby.node.glif.io/rpc/v0",
-      accounts: [PRIVATE_KEY,PRIVATE_KEY1],
+  solidity: "0.8.17",
+  namedAccounts: {
+    deployer: {
+      default: 0
+    },
+    owner: {
+      42: OwnerTestAccount,
+      4: OwnerTestAccount,
+      3: OwnerTestAccount
+    },
+    admin: {
+      42: OwnerTestAccount,
+      4: OwnerTestAccount,
+      3: OwnerTestAccount
     }
   },
+  defaultNetwork:"",
+  networks,
   paths: {
     sources: "./contracts",
     tests: "./test",
@@ -28,5 +42,8 @@ module.exports = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true
+  },
+  mocha: {
+    timeout: 2000000
   }
 };
