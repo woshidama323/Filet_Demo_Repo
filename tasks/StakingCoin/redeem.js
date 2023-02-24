@@ -9,7 +9,7 @@ task("StakingCoin", "Start staking fils on the contract")
     async function callRpc(method, params) {
       var options = {
         method: "POST",
-        url: "https://wallaby.node.glif.io/rpc/v0",
+        url: network.config.url, //"https://wallaby.node.glif.io/rpc/v0",
         // url: "http://localhost:1234/rpc/v0",
         headers: {
           "Content-Type": "application/json",
@@ -38,9 +38,7 @@ task("StakingCoin", "Start staking fils on the contract")
     console.log("signer0 is :",accounts[0].address)
     console.log("signer1 is :",accounts[1].address)
 
-
     const stakingContract = new ethers.Contract(contractAddr, StakingCon.interface, signer)
-    
     //start staking contract 
 
     // let swithresult = await stakingContract.switchOnContract(true, {

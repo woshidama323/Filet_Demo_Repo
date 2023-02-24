@@ -5,15 +5,15 @@ const networks = {
     blockGasLimit: 200000000,
     allowUnlimitedContractSize: true
   },
-  localhost: {
-    // chainId: 1,
-    url: 'http://127.0.0.1:8545',
-    allowUnlimitedContractSize: true,
-    accounts: {
-      mnemonic: process.env.HDWALLET_MNEMONIC
-    },
-    timeout: 1000 * 60
-  }
+  // localhost: {
+  //   // chainId: 1,
+  //   url: 'http://127.0.0.1:8545',
+  //   allowUnlimitedContractSize: true,
+  //   accounts: {
+  //     mnemonic: process.env.HDWALLET_MNEMONIC
+  //   },
+  //   timeout: 1000 * 60
+  // }
 }
 // filecoin network
 if (process.env.FILECOIN_Private) {

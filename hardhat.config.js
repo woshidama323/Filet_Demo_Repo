@@ -29,7 +29,7 @@ module.exports = {
       3: OwnerTestAccount
     }
   },
-  defaultNetwork:"",
+  defaultNetwork:"hyperspace",
   networks,
   paths: {
     sources: "./contracts",

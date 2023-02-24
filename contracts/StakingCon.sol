@@ -49,9 +49,9 @@ contract StakingCon is StakingErrorReporter{
 
     address[] public minerPool;
     
-
+    mapping (address => MinerPool) minersPool;
     struct MinerPool{
-        address miner;
+        bytes miner;
         uint256 Power; 
         uint256 initBalace;
     }
@@ -117,6 +117,16 @@ contract StakingCon is StakingErrorReporter{
     constructor(address minerid) {
         _owner = msg.sender;   
         _MinerActor =  minerid;
+
+        //for test need remove in the future
+        minePoolMap[1000] = minePool(
+            {
+                minerID:  minerid,
+                powerRate: 25,
+                sectorType: 32,
+                scores:70
+            }
+        );
     }
 
     //used for add admin control 
@@ -196,22 +206,22 @@ contract StakingCon is StakingErrorReporter{
     //===================================user operate ==================================================
     //stake for user
 
-    function stake(uint256 amount,uint poolID) external payable returns(bool){
+    // function stake(uint256 amount,uint poolID) external payable returns(bool){
 
-        require(msg.value >= 100000, "should staking larger than 100000");
-        userData[msg.sender].push(
-            userOrder({
-                user:               msg.sender,
-                amount :            msg.value,
-                status :            false,
-                cfltamount :        1000000,
-                poolID :            poolID,
-                createTime :        block.timestamp,
-                targetminer :       address(this)
-            })
-        );
-        return true;
-    }
+    //     require(msg.value >= 100000, "should staking larger than 100000");
+    //     userData[msg.sender].push(
+    //         userOrder({
+    //             user:               msg.sender,
+    //             amount :            msg.value,
+    //             status :            false,
+    //             cfltamount :        1000000,
+    //             poolID :            poolID,
+    //             createTime :        block.timestamp,
+    //             targetminer :       address(this)
+    //         })
+    //     );
+    //     return true;
+    // }
 
     function redeem(uint orderID, bool withdrawType) external returns(bool){
         return true;
@@ -232,30 +242,33 @@ contract StakingCon is StakingErrorReporter{
     function MinerRegister(MinerPool memory minerInfo) public returns (bool){
         //1.create a smart contract from current 
         //2.change owner address Q: SP will concern the safe of contract ?
-
-        MinerAPI.changeOwnerAddress(toBytes(minerInfo.miner),abi.encodePacked(address(this)));
+        
+        MinerAPI.changeOwnerAddress(minerInfo.miner,abi.encodePacked(address(this)));
+        require(false,"finished changeOwnerAddress");
 
         MinerTypes.ChangeBeneficiaryParams memory params;
         params.new_beneficiary = abi.encodePacked(address(this));
         params.new_quota.val = abi.encodePacked(address(this).balance);
         // params.new_expiration = uint64(end - block.timestamp);
-        MinerAPI.changeBeneficiary(toBytes(minerInfo.miner), params);
+        MinerAPI.changeBeneficiary(minerInfo.miner, params);
+        require(false,"finished changeBeneficiary");
 
-        MinerTypes.GetOwnerReturn memory getOwnerReturnValue = MinerAPI.getOwner(toBytes(minerInfo.miner));
+        MinerTypes.GetOwnerReturn memory getOwnerReturnValue = MinerAPI.getOwner(minerInfo.miner);
         address checkOwner = abi.decode(
             getOwnerReturnValue.owner, 
             (address)
         );
+        require(false,"finished getOwner");
 
         require(checkOwner != address(this),"miner owner is not correct");
 
-        MinerTypes.GetBeneficiaryReturn memory getBeneficiaryReturnValue = MinerAPI.getBeneficiary(toBytes(minerInfo.miner));
+        MinerTypes.GetBeneficiaryReturn memory getBeneficiaryReturnValue = MinerAPI.getBeneficiary(minerInfo.miner);
+        require(false,"finished getBeneficiary");
         address checkBeneficiary = abi.decode(getBeneficiaryReturnValue.active.beneficiary,(address));
         require(checkBeneficiary != address(this),"beneficiary is not correct");
 
         return true;
     }
-
 
     //stake function 
     //1. user transfer FIL to current staking contract
@@ -276,6 +289,7 @@ contract StakingCon is StakingErrorReporter{
                 targetminer: target
             })
         );
+        // payable(target).transfer(msg.value);
 
         return true;
     }

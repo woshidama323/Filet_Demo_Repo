@@ -50,3 +50,15 @@ npx hardhat deploy --tags StakingCon --network hyperspace
 ```shell
 npx hardhat test tests --network hyperspace
 ```
+
+
+## TODO
+
+### Improve
+some test not pass with exit code 33 , will debug those issues
+
+### design
+
+1. How to make sure the users' asset safe if miner or SP not follow the rules and terminate sectors 
+
+2. How to make sure the FILs safe if a hack issue happened for platform?
