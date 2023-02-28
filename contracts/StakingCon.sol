@@ -18,7 +18,7 @@ contract StakingCon is StakingErrorReporter{
 
     //Global Constant
     address _MinerActor;
-    uint256 LimitAmount = 1e16 ;
+    uint256 LimitAmount = 1e25 ;
 
     using SafeMath for uint256;
     //admin control
@@ -223,17 +223,35 @@ contract StakingCon is StakingErrorReporter{
     //     return true;
     // }
 
-    function redeem(uint orderID, bool withdrawType) external returns(bool){
+    function redeem(uint orderID, uint256 amount, address someone) external returns(bool){
+        //get back FIL from contract
+        // bytes memory user = toBytes(msg.sender);
+        // SendAPI.send(toBytes(msg.sender), amount);
+
+        require(userData[msg.sender].length > 0, "current user did not exist in system");
+        require(userData[msg.sender][orderID].user != address(0), "current order of user did not exist in system");
+
+        payable(someone).transfer(userData[msg.sender][orderID].amount);
+
+        userData[msg.sender][orderID].amount = 0;
+
+        userData[msg.sender][orderID].status = false;
+
+        userData[msg.sender][orderID].cfltamount = 0;        
         return true;
     }
 
-    function getProfit(uint plID,uint orderID) external returns ( bool ){
+    function getProfit(uint plID,uint orderID, address someone) external returns ( bool ){
 
         // some algorithm for profit calculating
-        uint256 profitestimate = address(this).balance * 1 / 10 ; //  
-        // userData[msg.sender]. 
-        // minePoolMap[userData[msg.sender].poolID].
-        payable(msg.sender).transfer(profitestimate);
+        // uint256 profitestimate = address(this).balance * 1 / 10 ; //  
+
+        require(userData[msg.sender].length > 0, "current user did not exist in system");
+        require(userData[msg.sender][orderID].user != address(0), "current order of user did not exist in system");
+
+        uint256 needProfit = userData[msg.sender][orderID].cfltamount * 1 / 10 ;
+        userData[msg.sender][orderID].cfltamount = userData[msg.sender][orderID].cfltamount - needProfit;
+        payable(userData[msg.sender][orderID].user ).transfer(needProfit);
         return true;
 
     }//end function
@@ -284,7 +302,7 @@ contract StakingCon is StakingErrorReporter{
                 amount:msg.value,
                 poolID:1,
                 status:true,
-                cfltamount:0,
+                cfltamount: msg.value * 1 / 10,
                 createTime:0,
                 targetminer: target
             })
