@@ -61,17 +61,13 @@ module.exports = async ({ deployments }) => {
     console.log("Wallet Ethereum Address:", deployer.address)
     console.log("Wallet f4Address: ", f4Address)
 
-    await deploy("StakingCon", {
+    await deploy("FiletContract", {
         from: deployer.address,
-        args: ["0x987e855776C03A4682639eEb14e65b3089EE6310"],
-        // since it's difficult to estimate the gas before f4 address is launched, it's safer to manually set
-        // a large gasLimit. This should be addressed in the following releases.
-        // since Ethereum's legacy transaction format is not supported on FVM, we need to specify
-        // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
+        args: [],
         maxPriorityFeePerGas: priorityFee,
         log: true,
     })
 }
 
-module.exports.tags = ["StakingCon"]
+module.exports.tags = ["FiletContract"]
 
