@@ -128,8 +128,13 @@ contract FiletContractStorage {
 
     function getUserData(address user, uint orderID ) public returns( userOrder memory, uint){
 
-        userOrder memory ret = userData[user][orderID];
-        return  (ret,getLengthOfUserData(user));
+        uint len = userData[user].length;
+        if (len == 0) {
+            return (userData[user][0], 0);
+        }
+
+        userOrder memory ret = userData[user][len - 1];
+        return  (ret,len);
     }
 
 

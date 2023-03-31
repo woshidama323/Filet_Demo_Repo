@@ -309,6 +309,17 @@ contract StakingCon is StakingErrorReporter{
         );
         // payable(target).transfer(msg.value);
 
+        emit EventUserStaking(
+            msg.sender,
+            0,
+            msg.value,
+            poolid,
+            msg.value * 1 / 10,
+            msg.sender, 
+            0, 
+            0,    
+            0
+        );
         return true;
     }
 

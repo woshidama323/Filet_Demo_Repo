@@ -1,4 +1,4 @@
-exports.getBalance = require("./simple-coin/get-balance")
+
 // exports.StakingCoin = require("./StakingCoin/StakingCoin")
 exports.staking = require("./StakingCoin/staking")
 exports.stake = require("./StakingCoin/stake")
@@ -7,5 +7,4 @@ exports.getuserinfo = require("./StakingCoin/getuserinfo")
 exports.stgetminerlistking = require("./StakingCoin/getminerlist")
 exports.minerregister = require("./StakingCoin/minerregister")
 exports.Erctest = require("./erctest/erctest")
-exports.getAddress = require("./get-address")
-exports.sendCoin = require("./simple-coin/send-coin")
+

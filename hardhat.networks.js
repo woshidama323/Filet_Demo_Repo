@@ -22,12 +22,14 @@ if (process.env.FILECOIN_Private) {
     chainId: 314,
     url: 'https://api.node.glif.io/rpc/v1',
     accounts: [process.env.FILECOIN_Private,process.env.FILECOIN_Private],
+    timeout: 1000 * 60,
   }
 
   networks.hyperspace = {
     chainId: 3141,
     url: 'https://api.hyperspace.node.glif.io/rpc/v1',
     accounts: [process.env.FILECOIN_Private,process.env.FILECOIN_Private],
+    timeout: 1000 * 60,
   }
 
   networks.calibration = {

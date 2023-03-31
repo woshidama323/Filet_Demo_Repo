@@ -24,9 +24,9 @@ contract FiletContract {
             uint updateDayTime;
     }
 
-    constructor() {
+    constructor(address stroageAddress) {
         
-        storageRef = FiletContractStorage(msg.sender);
+        storageRef = FiletContractStorage(stroageAddress);
         storageRef.setOwner(msg.sender) ;
     }
 
@@ -76,7 +76,8 @@ contract FiletContract {
         address     tokenAddress,        
         uint        expireType,    
         uint        actionType,          
-        uint        serviceFeePercent   
+        uint        serviceFeePercent,
+        uint        ifOfSp
     );
 
     /**
@@ -141,9 +142,9 @@ contract FiletContract {
     //===================================user operate ==================================================
     //stake for user
 
-    function stake(uint256 amount,uint poolID) external switchOn returns(bool){
+    function stake(uint256 amount,uint poolID,uint idOfSP) external payable switchOn returns(bool){
         //todo user need to be checked 
-
+        amount = msg.value;
         (
             FiletContractStorage.minePool memory mPool,
             bool isEntity
@@ -161,46 +162,64 @@ contract FiletContract {
         uint256 power = storageRef.convertTokenToPower(amount,poolID);
        
         uint orderLength ;//=  storageRef.getLengthOfUserData(msg.sender);
-        uint isPremiumLatest  = 0;
-        uint arrLen = orderLength - 1;
         FiletContractStorage.userOrder memory userO;
 
-        (userO,orderLength) = storageRef.getUserData(msg.sender,arrLen);
+        (userO,orderLength) = storageRef.getUserData(msg.sender,0);
 
-        if (orderLength == 0){
+        // if (orderLength == 0){
             
-            storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
-                userAddr:               msg.sender,    
-                levelIndex:             isPremiumLatest,
-                levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
-                levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
-            }));
-        }
-        //calculate the server fee level
-        uint calcuResult = storageRef.checkisPremium(amount ,mPool.poolThredhold);
-        if (isPremiumLatest < calcuResult ){
-            isPremiumLatest = calcuResult;
+        //     storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
+        //         userAddr:               msg.sender,    
+        //         levelIndex:             isPremiumLatest,
+        //         levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
+        //         levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
+        //     }));
+        // }
+        // //calculate the server fee level
+        // uint calcuResult = storageRef.checkisPremium(amount ,mPool.poolThredhold);
+        // if (isPremiumLatest < calcuResult ){
+        //     isPremiumLatest = calcuResult;
 
-            //record the users level premium info, only update when isPremiumLatest has changed
-            storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
-                userAddr:               msg.sender,    
-                levelIndex:             isPremiumLatest,
-                levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
-                levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
-            }));
-        }
+        //     //record the users level premium info, only update when isPremiumLatest has changed
+        //     storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
+        //         userAddr:               msg.sender,    
+        //         levelIndex:             isPremiumLatest,
+        //         levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
+        //         levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
+        //     }));
+        // }
 
         // FiletContractStorage.ratioStruct memory ratioInfo;
-        userO.ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
-        userO.ratioInfo.oserviceFeePercent = mPool.serviceFeePercent[isPremiumLatest];
+        // userO.ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
+        ratioStruct memory ratioInfo;
+        ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
+        ratioInfo.oserviceFeePercent = mPool.serviceFeePercent[0];
 
         require(mPool.maxMiningPower.canSell >= power ,"the current pool have no enough token to be selled");
 
         mPool.maxMiningPower.canSell = mPool.maxMiningPower.canSell.sub(power);
 
-        require(mPool.tokenInterface.transferFrom(msg.sender,address(this),amount),"failed to transfer token to contract account for staking");//minerAddress
+        // require(mPool.tokenInterface.transferFrom(msg.sender,address(this),amount),"failed to transfer token to contract account for staking");//minerAddress
 
         mPool.hasSoldOutToken = mPool.hasSoldOutToken.add(amount);
+
+
+
+
+        //push user date to storage
+        storageRef.setUserData(msg.sender,FiletContractStorage.userOrder({
+            userAddr:               msg.sender,
+            orderID:                orderLength,
+            poolID:                 poolID,
+            amount:                 amount,
+            power:                  power,
+            ratioInfo:              userO.ratioInfo,
+            expireTime:             block.timestamp.add(mPool.expireTime),
+            isExpire:               false
+        }),storageRef.BigEnough() );
+
+        //update mpool data 
+        storageRef.setMinePoolMap(poolID,mPool);
 
         emit EventUserStaking(
             msg.sender,
@@ -211,7 +230,8 @@ contract FiletContract {
             mPool.tokenAddress, 
             mPool.expireType, 
             mPool.actionType,    
-            userO.ratioInfo.oserviceFeePercent
+            userO.ratioInfo.oserviceFeePercent,
+            idOfSP
         );
         return true;
     }
@@ -302,17 +322,17 @@ contract FiletContract {
 
         storageRef.setUserData(msg.sender,FiletContractStorage.userOrder({
                 user:               msg.sender,
-                amount :            userO.amount,
-                status :            userO.status,
-                cfltamount :        userO.cfltamount,
-                poolID :            userO.poolID,
-                createTime :        userO.createTime,
-                targetminer :       userO.targetminer ,
-                ratioInfo  :        userO.ratioInfo,
-                lastProfitEnd :     userO.lastProfitEnd,
-                lastProfitPerGiB :  userO.lastProfitPerGiB,
-                stopDayTime :       userO.stopDayTime,
-                isPremium   :       userO.isPremium
+                amount :            amount,
+                status :            false,
+                cfltamount :        power,
+                poolID :            poolID,
+                createTime :        block.timestamp,
+                targetminer :       minerAddr ,
+                ratioInfo  :        ratioInfo,
+                lastProfitEnd :     0,
+                lastProfitPerGiB :  0,
+                stopDayTime :       0,
+                isPremium   :       isPremiumLatest
             }),
             orderID
         );
@@ -495,9 +515,88 @@ contract FiletContract {
         storageRef.setMinePoolMap(updateParas.poolID,mPool);
         emit UpdateMinePoolEvent(updateParas.poolID,updateParas.contr,updateParas.hasSoldOutToken);
         return true;
-
     }
 
+
+
+    //add flt token contract;
+    // function addFLTTokenContract(address fltToken) external ownerAndAdmin switchOn returns (bool){
+    //     require(fltToken != address(0),"stakingCon:addFLTTokenContract: fltToken address is zero");
+
+    //     storageRef.setFltTokenContract(fltToken);
+    //     emit AddFLTTokenContractEvent(fltToken);
+    //     return true;
+    // }
+
+    //add fil token contract for profit;
+    function addFILTokenContract(address filTokenCon) external ownerAndAdmin switchOn returns (bool){
+        require(filTokenCon != address(0),"stakingCon:addFILTokenContract: filToken address is zero");
+        storageRef.setFilTokenContract(filTokenCon);
+
+
+        emit AddFILTokenContractEvent(filTokenCon);
+        return true;
+    }
+
+
+}
+
+contract MinerProxy {
+    FiletContractStorage private storageRef;
+    using SafeMath for uint256;
+    constructor() {
+        
+        storageRef = FiletContractStorage(msg.sender);
+        storageRef.setOwner(msg.sender) ;
+    }
+
+    //used for add admin control 
+    modifier ownerAndAdmin() { // Modifier
+        require(
+            msg.sender == storageRef._owner() || msg.sender == storageRef._admin(),
+            "Only onwer or admin can call this."
+        );
+        _;
+    }
+
+    //lock the contract for safing 
+    modifier switchOn() { // Modifier
+        require(
+            storageRef._switchOn(),
+            "switch is off"
+        );
+        _;
+    }
+
+    event MinerRetrieveTokenEvent(
+        address user,
+        uint    poolID,
+        uint256 amount
+    );
+    // //miner get tokens from certain pool with flt 
+    function minerRetrieveToken(uint poolID,uint256 amount) external returns (bool){
+
+
+        (
+            FiletContractStorage.minePool memory mPool,
+            bool isEntity
+        ) = storageRef.minePoolMap(poolID);
+        require(isEntity,"current pool does not exist");
+
+        require(msg.sender == mPool.minerAccount,"user has not registered on the contract");
+
+        require(mPool.actionType == 1,"only staking pool can retrieval token ");
+
+        require(amount <= mPool.hasSoldOutToken,"not enough token to be back for miner");
+        mPool.hasSoldOutToken = mPool.hasSoldOutToken.sub(amount);
+
+        uint256 getPower = storageRef.convertTokenToPower(amount,poolID);
+        require(IERC20(storageRef._fltTokenContract()).transferFrom(msg.sender,address(this),getPower),"failed to transfer file from user to contract");
+        require(mPool.tokenInterface.transfer(msg.sender,amount),"failed to transfer flt from user to contract");
+        emit MinerRetrieveTokenEvent(msg.sender,poolID,amount);
+        return true;        
+    }
+    
     /**
      * @dev event for updating user order fee
     */
@@ -525,21 +624,6 @@ contract FiletContract {
             if (length == 0){
                 continue;
             }
-
-            // (
-            //     address user,           
-            //     uint256 amount,           
-            //     uint    poolID,             
-            //     bool    status,            
-            //     uint256 cfltamount,        
-            //     uint256 createTime,         
-            //     address targetminer,       
-            //     FiletContractStorage.ratioStruct memory ratioInfo,
-            //     uint    lastProfitEnd,     
-            //     uint256 lastProfitPerGiB,  
-            //     uint    stopDayTime,       
-            //     uint  isPremium
-            // ) = storageRef.userData(updateOrders[i].userAddress,updateOrders[i].orderID);
 
             (
                 FiletContractStorage.minePool memory mPool,
@@ -573,74 +657,4 @@ contract FiletContract {
 
         return true;
     }
-
-    //add flt token contract;
-    function addFLTTokenContract(address fltToken) external ownerAndAdmin switchOn returns (bool){
-        require(fltToken != address(0),"stakingCon:addFLTTokenContract: fltToken address is zero");
-
-        storageRef.setFltTokenContract(fltToken);
-        emit AddFLTTokenContractEvent(fltToken);
-        return true;
-    }
-
-    //add fil token contract for profit;
-    function addFILTokenContract(address filTokenCon) external ownerAndAdmin switchOn returns (bool){
-        require(filTokenCon != address(0),"stakingCon:addFILTokenContract: filToken address is zero");
-        storageRef.setFilTokenContract(filTokenCon);
-
-
-        emit AddFILTokenContractEvent(filTokenCon);
-        return true;
-    }
-
-    event MinerRetrieveTokenEvent(
-        address user,
-        uint    poolID,
-        uint256 amount
-    );
-    // //miner get tokens from certain pool with flt 
-    function minerRetrieveToken(uint poolID,uint256 amount) external switchOn returns (bool){
-
-
-        (
-            FiletContractStorage.minePool memory mPool,
-            bool isEntity
-        ) = storageRef.minePoolMap(poolID);
-        require(isEntity,"current pool does not exist");
-
-        require(msg.sender == mPool.minerAccount,"user has not registered on the contract");
-
-        require(mPool.actionType == 1,"only staking pool can retrieval token ");
-
-        require(amount <= mPool.hasSoldOutToken,"not enough token to be back for miner");
-        mPool.hasSoldOutToken = mPool.hasSoldOutToken.sub(amount);
-
-        uint256 getPower = storageRef.convertTokenToPower(amount,poolID);
-        require(IERC20(storageRef._fltTokenContract()).transferFrom(msg.sender,address(this),getPower),"failed to transfer file from user to contract");
-        require(mPool.tokenInterface.transfer(msg.sender,amount),"failed to transfer flt from user to contract");
-        emit MinerRetrieveTokenEvent(msg.sender,poolID,amount);
-        return true;        
-    }
-
-    //miner get tokens from certain pool with flt 
-    // function minerRetrieveFILE(uint poolID,uint256 amount) public switchOn returns (bool){
-
-    //     require(storageRef.minePoolMap[poolID].isEntity,"current pool does not exist");
-
-    //     require(msg.sender == storageRef.minePoolMap[poolID].mPool.minerAccount,"user has not registered on the contract");
-
-    //     require(storageRef.minePoolMap[poolID].mPool.actionType == 1,"only staking pool can retrieval token ");
-
-    //     require(storageRef.minePoolMap[poolID].mPool.maxMiningPower.canSell >= amount,"not enough file to retrieve");
-
-    //     storageRef.minePoolMap[poolID].mPool.maxMiningPower.canSell = storageRef.minePoolMap[poolID].mPool.maxMiningPower.canSell.sub(amount);
-
-    //     require(IERC20(FiletContractStorage._fltTokenContract).transfer(msg.sender,amount),"failed to transfer FILE from contract");
-
-    //     return true;
-
-    // }
-
-    //===================================tool function==================================================
-
 }

@@ -58,6 +58,8 @@ module.exports = async ({ deployments }) => {
     const f4Address = fa.newDelegatedEthAddress(deployer.address).toString()
     const nonce = await callRpc("Filecoin.MpoolGetNonce", [f4Address])
 
+
+    console.log("priorityFee is:",priorityFee)
     console.log("Wallet Ethereum Address:", deployer.address)
     console.log("Wallet f4Address: ", f4Address)
 

@@ -61,12 +61,26 @@ module.exports = async ({ deployments }) => {
     console.log("Wallet Ethereum Address:", deployer.address)
     console.log("Wallet f4Address: ", f4Address)
 
-    await deploy("FiletContract", {
+
+    //部署storage 合约
+    storageCon = await deploy("FiletContractStorage", {
         from: deployer.address,
         args: [],
         maxPriorityFeePerGas: priorityFee,
         log: true,
     })
+
+    console.log("......storageCon addr is :",storageCon.address)
+
+    filetCon = await deploy("FiletContract", {
+        from: deployer.address,
+        args: [storageCon.address],
+        maxPriorityFeePerGas: priorityFee,
+        log: true,
+    })
+
+    //
+    console.log("......filetCon address is :",filetCon)
 }
 
 module.exports.tags = ["FiletContract"]
