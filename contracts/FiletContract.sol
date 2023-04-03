@@ -161,39 +161,17 @@ contract FiletContract {
 
         uint256 power = storageRef.convertTokenToPower(amount,poolID);
        
-        uint orderLength ;//=  storageRef.getLengthOfUserData(msg.sender);
-        FiletContractStorage.userOrder memory userO;
+        // FiletContractStorage.userOrder memory userO ;
 
-        (userO,orderLength) = storageRef.getUserData(msg.sender,0);
+        // (userO1,orderLength) = storageRef.getLatestUserData(msg.sender);
 
-        // if (orderLength == 0){
-            
-        //     storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
-        //         userAddr:               msg.sender,    
-        //         levelIndex:             isPremiumLatest,
-        //         levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
-        //         levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
-        //     }));
-        // }
-        // //calculate the server fee level
-        // uint calcuResult = storageRef.checkisPremium(amount ,mPool.poolThredhold);
-        // if (isPremiumLatest < calcuResult ){
-        //     isPremiumLatest = calcuResult;
 
-        //     //record the users level premium info, only update when isPremiumLatest has changed
-        //     storageRef.setUserPremiumLevelInfo(msg.sender,FiletContractStorage.userPremiumLevelInfoType({
-        //         userAddr:               msg.sender,    
-        //         levelIndex:             isPremiumLatest,
-        //         levelThredholdValue:    mPool.poolThredhold[isPremiumLatest],
-        //         levelServerFee:         mPool.serviceFeePercent[isPremiumLatest]
-        //     }));
-        // }
 
         // FiletContractStorage.ratioStruct memory ratioInfo;
         // userO.ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
-        ratioStruct memory ratioInfo;
-        ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
-        ratioInfo.oserviceFeePercent = mPool.serviceFeePercent[0];
+        FiletContractStorage.ratioStruct memory ratioInfo;
+        // userO.ratioInfo.ostakingPrice    = mPool.stakingPrice.mul(mPool.tokenRate).div(mPool.FILRate);
+        // userO.ratioInfo.oserviceFeePercent = mPool.serviceFeePercent[0];
 
         require(mPool.maxMiningPower.canSell >= power ,"the current pool have no enough token to be selled");
 
@@ -203,19 +181,21 @@ contract FiletContract {
 
         mPool.hasSoldOutToken = mPool.hasSoldOutToken.add(amount);
 
-
-
-
         //push user date to storage
         storageRef.setUserData(msg.sender,FiletContractStorage.userOrder({
-            userAddr:               msg.sender,
-            orderID:                orderLength,
-            poolID:                 poolID,
-            amount:                 amount,
-            power:                  power,
-            ratioInfo:              userO.ratioInfo,
-            expireTime:             block.timestamp.add(mPool.expireTime),
-            isExpire:               false
+                user:               msg.sender,
+                amount :            amount,
+                status :            false,
+                cfltamount :        power,
+                poolID :            poolID,
+                createTime :        block.timestamp,
+                targetminer :       mPool.recievePaymentAccount,
+                ratioInfo  :        ratioInfo,
+                lastProfitEnd :     0,
+                lastProfitPerGiB :  0,
+                stopDayTime :       0,
+                isPremium   :       0
+
         }),storageRef.BigEnough() );
 
         //update mpool data 
@@ -223,14 +203,14 @@ contract FiletContract {
 
         emit EventUserStaking(
             msg.sender,
-            orderLength - 1,
+            storageRef.getLengthOfUserData(msg.sender) - 1,
             amount,
             poolID,
             power,
             mPool.tokenAddress, 
             mPool.expireType, 
             mPool.actionType,    
-            userO.ratioInfo.oserviceFeePercent,
+            0,//userO.ratioInfo.oserviceFeePercent,
             idOfSP
         );
         return true;
@@ -320,20 +300,7 @@ contract FiletContract {
             forEvent = storageRef._fltTokenContract();
         }
 
-        storageRef.setUserData(msg.sender,FiletContractStorage.userOrder({
-                user:               msg.sender,
-                amount :            amount,
-                status :            false,
-                cfltamount :        power,
-                poolID :            poolID,
-                createTime :        block.timestamp,
-                targetminer :       minerAddr ,
-                ratioInfo  :        ratioInfo,
-                lastProfitEnd :     0,
-                lastProfitPerGiB :  0,
-                stopDayTime :       0,
-                isPremium   :       isPremiumLatest
-            }),
+        storageRef.setUserData(msg.sender,userO,
             orderID
         );
 

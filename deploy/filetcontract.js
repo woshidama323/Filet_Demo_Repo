@@ -81,6 +81,18 @@ module.exports = async ({ deployments }) => {
 
     //
     console.log("......filetCon address is :",filetCon)
+
+    //
+    MinerProxyCon = await deploy("MinerProxy", {
+        from: deployer.address,
+        args: [storageCon.address],
+        maxPriorityFeePerGas: priorityFee,
+        log: true,
+    })
+
+    //
+    console.log("......MinerProxyCon address is :",MinerProxyCon)
+
 }
 
 module.exports.tags = ["FiletContract"]

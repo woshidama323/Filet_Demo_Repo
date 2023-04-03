@@ -133,6 +133,21 @@ contract FiletContractStorage {
             return (userData[user][0], 0);
         }
 
+        //initial a userData
+
+        userOrder memory ret = userData[user][len - 1];
+        return  (ret,len);
+    }
+
+    function getLatestOrderID(address user ) public returns( userOrder memory, uint){
+
+        uint len = userData[user].length;
+        if (len == 0) {
+            return (userData[user][0], 0);
+        }
+
+        //initial a userData
+
         userOrder memory ret = userData[user][len - 1];
         return  (ret,len);
     }
